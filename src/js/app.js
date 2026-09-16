@@ -469,11 +469,28 @@ function setupSettingsDialog() {
       dialog.close();
     });
   }
+
+  const copyOriginBtn = document.getElementById('btn-copy-origin');
+  if (copyOriginBtn) {
+    copyOriginBtn.addEventListener('click', () => {
+      const origin = window.location.origin;
+      navigator.clipboard.writeText(origin).then(() => {
+        showToast(`オリジン「${origin}」をコピーしました`, 'success');
+      }).catch(() => {
+        showToast(`コピーに失敗しました: ${origin}`, 'info');
+      });
+    });
+  }
 }
 
 function openSettingsDialog() {
   const dialog = document.getElementById('dialog-settings');
   if (!dialog) return;
+
+  const originEl = document.getElementById('current-origin-display');
+  if (originEl) {
+    originEl.textContent = window.location.origin;
+  }
 
   const config = getConfig();
   setFormVal('setting-client-id', config.googleClientId);

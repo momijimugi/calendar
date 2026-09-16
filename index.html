@@ -316,22 +316,44 @@
         <label for="setting-client-id">Google OAuth 2.0 クライアントID</label>
         <input type="text" id="setting-client-id" class="form-input" placeholder="例: 123456789-xxxx.apps.googleusercontent.com">
         <div id="setting-client-id-feedback" style="font-size: 0.8rem; margin-top: 0.35rem; display: none;"></div>
-        <div class="form-hint">
-          Google Cloud Console で「OAuth 2.0 クライアント ID（ウェブ アプリケーション）」を作成し、承認済みのJavaScript生成元に <code>http://localhost:5173</code> を追加してください。
+        
+        <div class="form-hint" style="margin-top: 0.4rem;">
+          Google Cloud Console で「OAuth 2.0 クライアント ID（ウェブ アプリケーション）」を作成し、<strong>「承認済みの JavaScript 生成元」</strong>に以下のオリジンを登録してください。
         </div>
 
-        <!-- 401 Error Help Box -->
+        <!-- Current Origin Display & Copy Tool -->
+        <div style="margin-top: 0.45rem; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.45rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+          <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span style="color: var(--text-muted);">現在の登録用オリジン:</span>
+            <code id="current-origin-display" style="font-weight: 700; color: var(--primary); margin-left: 0.3rem;"></code>
+          </div>
+          <button type="button" id="btn-copy-origin" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.55rem; font-size: 0.75rem; flex-shrink: 0;">
+            コピー
+          </button>
+        </div>
+
+        <!-- OAuth Error Troubleshooting Box -->
         <details style="margin-top: 0.6rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 0.65rem 0.85rem; font-size: 0.8125rem;">
           <summary style="font-weight: 600; color: #92400e; cursor: pointer;">
-            ⚠️ 「401: invalid_client」が出る場合の確認リスト
+            ⚠️ 「エラー 400: origin_mismatch」や「401: invalid_client」の解決手順
           </summary>
-          <ul style="margin-top: 0.5rem; margin-left: 1.25rem; color: #78350f; line-height: 1.6;">
-            <li><strong>① アプリケーションの種類:</strong> Google Cloud Consoleで作成したクライアントの種類が<strong>「ウェブ アプリケーション」</strong>になっていますか？（「デスクトップ」等で作成したIDはブラウザ認証で401エラーになります）</li>
-            <li><strong>② 承認済みのJavaScript生成元:</strong> <code>http://localhost:5173</code> や GitHub Pages の場合は <code>https://&lt;ユーザー名&gt;.github.io</code> が正確に登録されていますか？（※末尾の <code>/</code> やリポジトリ名は含めないでください）</li>
-            <li><strong>③ 入力文字列の確認:</strong> <code>xxxx.apps.googleusercontent.com</code> の形式ですか？APIキー（<code>AIzaSy...</code>）やシークレット（<code>GOCSPX-...</code>）を入れていませんか？</li>
-            <li><strong>④ Google側の反映時間:</strong> クライアントIDを新規作成した直後は、Googleサーバー全体に反映されるまで<strong>3〜5分程度</strong>かかることがあります。</li>
-            <li><strong>⑤ テストユーザー:</strong> OAuth同意画面が「テスト中」の場合、ログインするGoogleアカウントを「テスト ユーザー」に追加してください。</li>
-          </ul>
+          <div style="margin-top: 0.6rem; color: #78350f; line-height: 1.6;">
+            <div style="font-weight: 700; margin-bottom: 0.2rem; color: #92400e;">🚨 エラー 400: origin_mismatch が出る場合:</div>
+            <ul style="margin-left: 1.25rem; margin-bottom: 0.6rem;">
+              <li>Google Cloud Console の「承認済みの JavaScript 生成元」に、上記の<strong>「現在の登録用オリジン」</strong>が登録されていません。</li>
+              <li>GitHub Pages の場合: <code>https://momijimugi.github.io</code></li>
+              <li>ローカル実行の場合: <code>http://localhost:5173</code></li>
+              <li><strong>※末尾のスラッシュ <code>/</code> や <code>/calendar</code> は含めないでください！</strong>「http(s)://ホスト名(:ポート)」の形式で登録する必要があります。</li>
+              <li>追加・保存後、Google側に反映されるまで<strong>2〜5分程度</strong>かかります。</li>
+            </ul>
+
+            <div style="font-weight: 700; margin-bottom: 0.2rem; color: #92400e;">⚠️ その他の確認項目:</div>
+            <ul style="margin-left: 1.25rem;">
+              <li><strong>アプリケーションの種類:</strong> 「デスクトップ」ではなく必ず<strong>「ウェブ アプリケーション」</strong>で作成してください。</li>
+              <li><strong>入力文字列:</strong> <code>xxxx.apps.googleusercontent.com</code> 形式です。APIキー（<code>AIzaSy...</code>）と混同していないか確認してください。</li>
+              <li><strong>テストユーザー:</strong> OAuth同意画面が「テスト中」の場合、ログインするGoogleアカウントを「テスト ユーザー」に追加してください。</li>
+            </ul>
+          </div>
         </details>
       </div>
 
