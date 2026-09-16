@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+
+    <!-- Calendar Header Gradient -->
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+
+    <!-- Sparkle Gradient -->
+    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.3" flood-color="#0f172a" />
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Container -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bgGrad)" />
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#a5b4fc" stroke-width="1.2" stroke-opacity="0.4" />
+
+  <!-- Calendar Page -->
+  <g filter="url(#shadow)">
+    <!-- White Paper Page -->
+    <rect x="11" y="15" width="42" height="38" rx="6" fill="#ffffff" />
+    
+    <!-- Red Header Strip -->
+    <path d="M11 21 C11 17.686 13.686 15 17 15 L47 15 C50.314 15 53 17.686 53 21 L53 26 L11 26 Z" fill="url(#headerGrad)" />
+  </g>
+
+  <!-- Binder Rings -->
+  <rect x="20" y="10" width="4" height="9" rx="2" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.6" />
+  <rect x="40" y="10" width="4" height="9" rx="2" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.6" />
+
+  <!-- Schedule Slot Blocks -->
+  <rect x="17" y="31" width="6" height="6" rx="1.5" fill="#3b82f6" />
+  <rect x="26" y="31" width="6" height="6" rx="1.5" fill="#f59e0b" />
+  <rect x="17" y="40" width="6" height="6" rx="1.5" fill="#10b981" />
+  <rect x="26" y="40" width="6" height="6" rx="1.5" fill="#6366f1" />
+
+  <!-- AI Sparkle ✦ -->
+  <path d="M43 30 C43 34.5 46 37.5 50.5 37.5 C46 37.5 43 40.5 43 45 C43 40.5 40 37.5 35.5 37.5 C40 37.5 43 34.5 43 30 Z" fill="url(#sparkleGrad)" filter="url(#shadow)" />
+  
+  <!-- Mini Sparkle Accent -->
+  <path d="M49 28 C49 29.3 49.8 30.2 51.2 30.2 C49.8 30.2 49 31.1 49 32.5 C49 31.1 48.2 30.2 46.8 30.2 C48.2 30.2 49 29.3 49 28 Z" fill="#fef08a" />
+</svg>
