@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Calendar Sync - Googleカレンダー連携＆予約メールAI自動登録</title>
+  <!-- Google Identity Services (OAuth 2.0) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/src/css/style.css">
+  <link rel="stylesheet" href="/src/css/calendar.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon">📅</div>
+      <div>
+        <h1 class="brand-title">AI Calendar Sync</h1>
+        <div class="brand-subtitle">Googleカレンダー連携 &amp; レッスン・シフト枠マネージャー</div>
+      </div>
+      <div id="demo-mode-badge" class="demo-mode-badge" style="display: none;">
+        ✨ デモモード稼働中
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Calendar Selector -->
+      <div class="calendar-select-wrapper" title="同期するGoogleカレンダーを選択">
+        <label for="calendar-selector">カレンダー:</label>
+        <select id="calendar-selector">
+          <option value="primary">メインカレンダー</option>
+        </select>
+      </div>
+
+      <!-- Sync/Refresh Button -->
+      <button id="btn-refresh-data" class="btn btn-secondary btn-sm" title="カレンダーデータを最新に更新">
+        🔄 更新
+      </button>
+
+      <!-- Settings Button -->
+      <button id="btn-open-settings" class="btn btn-secondary btn-sm" title="API設定・キーワード設定">
+        ⚙️ 設定
+      </button>
+
+      <!-- Auth Controls -->
+      <div class="auth-status-container">
+        <button id="btn-google-login" class="btn btn-primary btn-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+          Googleでログイン
+        </button>
+
+        <div id="user-profile-badge" class="user-profile-badge" style="display: none;">
+          <img id="user-avatar-img" class="user-avatar" src="" alt="avatar" style="display: none;">
+          <span id="user-email-text">連携中</span>
+          <button id="btn-google-logout" class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+            ログアウト
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-nav">
+    <button class="nav-tab-btn active" data-tab="tab-calendar">
+      📅 カレンダー表示
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-slots">
+      📋 レッスン・シフト枠一覧
+      <span id="tab-badge-slots" class="tab-badge">0</span>
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-ai-parser">
+      🤖 予約メールAI自動登録
+    </button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Tab 1: Calendar View -->
+    <section id="tab-calendar" class="tab-content active">
+      <div class="calendar-card">
+        <div class="calendar-top-bar">
+          <div class="legend-bar">
+            <div class="legend-item">
+              <span class="legend-dot lesson"></span>
+              <span>レッスン枠 (カタカナ氏名)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot open"></span>
+              <span>レッスン空き枠</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot shift"></span>
+              <span>シフト枠 (lilla)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot other"></span>
+              <span>その他予定</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="calendar-root"></div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Lesson & Shift Slots List -->
+    <section id="tab-slots" class="tab-content">
+      <!-- Metrics Dashboard -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon-box lesson">🎓</div>
+          <div>
+            <div id="metric-lesson-count" class="metric-value">0 枠</div>
+            <div class="metric-label">レッスン総枠数</div>
+            <div id="metric-lesson-hours" class="metric-sub">0 時間</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box open">✨</div>
+          <div>
+            <div id="metric-open-count" class="metric-value">0 枠</div>
+            <div class="metric-label">予約可能・空き枠</div>
+            <div class="metric-sub">生徒募集中枠</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box shift">⏱️</div>
+          <div>
+            <div id="metric-shift-count" class="metric-value">0 枠</div>
+            <div class="metric-label">シフト枠数</div>
+            <div class="metric-sub">教室・受付当番</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box total">📊</div>
+          <div>
+            <div id="metric-shift-hours" class="metric-value">0 時間</div>
+            <div class="metric-label">合計稼働時間</div>
+            <div class="metric-sub">レッスン＋シフト</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-card">
+        <div id="slot-category-pills" class="filter-pills">
+          <button class="filter-pill active" data-category="all">すべて表示</button>
+          <button class="filter-pill" data-category="lesson">🎓 レッスン枠のみ</button>
+          <button class="filter-pill" data-category="open">✨ 空き枠のみ</button>
+          <button class="filter-pill" data-category="shift">⏱️ シフト枠のみ</button>
+          <button class="filter-pill" data-category="slots_only">枠のみ（通常除外）</button>
+        </div>
+
+        <div class="filter-actions">
+          <select id="slot-date-range-select" class="form-select" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.8125rem;">
+            <option value="all">全期間</option>
+            <option value="this_week">今週</option>
+            <option value="this_month" selected>今月</option>
+            <option value="next_month">来月</option>
+          </select>
+
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="slot-search-input" placeholder="名前やタイトルで検索...">
+          </div>
+
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" title="現在の枠一覧をCSVダウンロード">
+            📥 CSV出力
+          </button>
+        </div>
+      </div>
+
+      <!-- Slots Data Table -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="slots-table">
+            <thead>
+              <tr>
+                <th style="width: 130px;">種別</th>
+                <th style="width: 120px;">ステータス</th>
+                <th style="width: 210px;">日時</th>
+                <th>枠タイトル / 場所</th>
+                <th style="width: 90px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="slots-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div id="slots-table-empty" class="empty-state" style="display: none;">
+          <div class="empty-state-icon">📋</div>
+          <p>該当するレッスン枠・シフト枠はありません</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: AI Reservation Mail Parser -->
+    <section id="tab-ai-parser" class="tab-content">
+      <div class="ai-parser-layout">
+        
+        <!-- Left: Input & Preset Card -->
+        <div class="parser-card">
+          <div class="card-title-group">
+            <h2>📨 予約メールのコピペ入力</h2>
+            <p>予約通知メールや連絡メールをそのまま貼り付けてください。単一のメールはもちろん、<strong>複数のメールをまとめて貼り付けても一括でAI解析</strong>できます。</p>
+          </div>
+
+          <!-- Preset Templates -->
+          <div class="preset-samples">
+            <div class="preset-label">テスト用サンプルメール（クリックで即入力）:</div>
+            <div class="preset-btn-group">
+              <button class="preset-btn preset-btn-batch" data-preset="batchSample">📦 複数メール一括サンプル (3件)</button>
+              <button class="preset-btn" data-preset="trialLesson">🎸 体験レッスン予約</button>
+              <button class="preset-btn" data-preset="cancellation">🚨 予約キャンセル通知</button>
+              <button class="preset-btn" data-preset="reschedule">🎤 日時変更希望</button>
+              <button class="preset-btn" data-preset="shiftRequest">⏱️ シフト提出希望</button>
+            </div>
+          </div>
+
+          <!-- Email Content Textarea -->
+          <div class="form-group">
+            <textarea id="email-input-text" class="form-textarea email-textarea" placeholder="メール本文をここに貼り付けてください...
+※ 複数のメール（新規予約、キャンセル連絡、シフト希望など）をまとめて貼り付けても一括自動解析・登録できます。
+
+例:
+件名: 【WEB予約】体験レッスンのご予約が入りました
+お名前: 佐々木 陽菜 様
+日時: 2026年9月22日 15:00〜16:00
+------------------------------------
+件名: 【予約キャンセル】レッスンキャンセルのお願い
+お名前: 佐藤 健一 様
+..."></textarea>
+          </div>
+
+          <div class="parser-action-bar">
+            <div id="parse-status-indicator" style="font-size: 0.8125rem; color: var(--primary); font-weight: 500;"></div>
+            <button id="btn-parse-email" class="btn btn-primary btn-lg">
+              ✨ AIで解析する
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: AI Preview & Confirmation Card -->
+        <div class="parser-card">
+          <div class="card-title-group" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h2>🔍 解析結果プレビュー</h2>
+              <p>内容を確認し、必要に応じて編集してカレンダーへ登録・キャンセル処理を行います。</p>
+            </div>
+            <div id="ai-preview-count-badge" class="badge badge-lesson" style="display: none;">0件</div>
+          </div>
+
+          <div id="ai-preview-empty" class="empty-state">
+            <div class="empty-state-icon">🤖</div>
+            <p>左側の欄にメールを貼り付けて「AIで解析する」を押してください。<br>1件のみでも、複数件のメールでも自動で抽出・整理します。</p>
+          </div>
+
+          <!-- Dynamic Container for Parsed Events -->
+          <div id="ai-preview-container" style="display: none;">
+            <!-- Rendered dynamically by mail-parser-ui.js -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Event Detail Modal (<dialog>) -->
+  <dialog id="dialog-event-detail">
+    <div class="dialog-header">
+      <h3>予定の詳細</h3>
+      <button id="btn-close-detail" class="btn-close" aria-label="閉じる">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <h2 id="detail-event-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);"></h2>
+      <div id="detail-event-time" style="font-weight: 600; color: var(--primary); margin-bottom: 0.75rem;"></div>
+      <div id="detail-event-location" style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;"></div>
+      
+      <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem;">詳細・連絡先情報:</div>
+      <div id="detail-event-description" style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; font-size: 0.875rem; white-space: pre-wrap; font-family: inherit; line-height: 1.6;"></div>
+    </div>
+    <div class="dialog-footer">
+      <a id="btn-detail-gcal-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+        Googleカレンダーで開く ↗
+      </a>
+      <button onclick="document.getElementById('dialog-event-detail').close()" class="btn btn-secondary btn-sm">
+        閉じる
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Settings Modal (<dialog>) -->
+  <dialog id="dialog-settings">
+    <div class="dialog-header">
+      <h3>アプリケーション設定</h3>
+      <button id="btn-close-settings" class="btn-close" aria-label="閉じる">&times;</button>
+    </div>
+    <div class="dialog-body">
+      
+      <!-- Google OAuth Client ID -->
+      <div class="form-group">
+        <label for="setting-client-id">Google OAuth 2.0 クライアントID</label>
+        <input type="text" id="setting-client-id" class="form-input" placeholder="例: 123456789-xxxx.apps.googleusercontent.com">
+        <div id="setting-client-id-feedback" style="font-size: 0.8rem; margin-top: 0.35rem; display: none;"></div>
+        <div class="form-hint">
+          Google Cloud Console で「OAuth 2.0 クライアント ID（ウェブ アプリケーション）」を作成し、承認済みのJavaScript生成元に <code>http://localhost:5173</code> を追加してください。
+        </div>
+
+        <!-- 401 Error Help Box -->
+        <details style="margin-top: 0.6rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 0.65rem 0.85rem; font-size: 0.8125rem;">
+          <summary style="font-weight: 600; color: #92400e; cursor: pointer;">
+            ⚠️ 「401: invalid_client」が出る場合の確認リスト
+          </summary>
+          <ul style="margin-top: 0.5rem; margin-left: 1.25rem; color: #78350f; line-height: 1.6;">
+            <li><strong>① アプリケーションの種類:</strong> Google Cloud Consoleで作成したクライアントの種類が<strong>「ウェブ アプリケーション」</strong>になっていますか？（「デスクトップ」等で作成したIDはブラウザ認証で401エラーになります）</li>
+            <li><strong>② 承認済みのJavaScript生成元:</strong> <code>http://localhost:5173</code> が正確に登録されていますか？（※末尾の <code>/</code> は付けないでください）</li>
+            <li><strong>③ 入力文字列の確認:</strong> <code>xxxx.apps.googleusercontent.com</code> の形式ですか？APIキー（<code>AIzaSy...</code>）やシークレット（<code>GOCSPX-...</code>）を入れていませんか？</li>
+            <li><strong>④ Google側の反映時間:</strong> クライアントIDを新規作成した直後は、Googleサーバー全体に反映されるまで<strong>3〜5分程度</strong>かかることがあります。</li>
+            <li><strong>⑤ テストユーザー:</strong> OAuth同意画面が「テスト中」の場合、ログインするGoogleアカウントを「テスト ユーザー」に追加してください。</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Google Gemini API Key (Free) -->
+      <div class="form-group">
+        <label for="setting-gemini-key">Google Gemini APIキー (無料枠)</label>
+        <input type="password" id="setting-gemini-key" class="form-input" placeholder="AIzaSy...">
+        <div class="form-hint">
+          メール解析に使用します。<a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">Google AI Studio</a> より無料で即時取得できます（Gemini 2.0 Flash / 1.5 Flash 無料枠）。
+        </div>
+      </div>
+
+      <!-- Filter Keywords -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="setting-lesson-keywords">レッスン枠 追加キーワード</label>
+          <input type="text" id="setting-lesson-keywords" class="form-input" placeholder="レッスン,授業,体験">
+          <div class="form-hint">※「カタカナのお名前のみ」の予定は自動でレッスン枠と判定されます</div>
+        </div>
+
+        <div class="form-group">
+          <label for="setting-shift-keywords">シフト枠 追加キーワード</label>
+          <input type="text" id="setting-shift-keywords" class="form-input" placeholder="シフト,勤務,当番">
+          <div class="form-hint">※「lilla」のみの予定は自動でシフト枠と判定されます</div>
+        </div>
+      </div>
+
+      <!-- Demo Mode -->
+      <div style="background: #f8fafc; border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-weight: 600; font-size: 0.875rem;">デモモード（サンプルデータで試す）</div>
+          <div style="font-size: 0.775rem; color: var(--text-muted);">APIキー未設定でも、サンプル予定やモックAI解析の動作を体験できます。</div>
+        </div>
+        <button type="button" id="btn-toggle-demo" class="btn btn-secondary btn-sm">
+          デモ切替
+        </button>
+      </div>
+
+    </div>
+    <div class="dialog-footer">
+      <button onclick="document.getElementById('dialog-settings').close()" class="btn btn-secondary">
+        キャンセル
+      </button>
+      <button id="btn-save-settings" class="btn btn-primary">
+        保存する
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Main JavaScript App -->
+  <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>

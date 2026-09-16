@@ -1,0 +1,803 @@
+/* Component-specific styles: Calendar, Slots List, and AI Mail Parser */
+
+/* -------------------------------------------------------------
+ * 1. Calendar View Styling (FullCalendar overrides)
+ * ----------------------------------------------------------- */
+.calendar-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.8125rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+.legend-dot.lesson { background-color: var(--lesson-color); }
+.legend-dot.shift { background-color: var(--shift-color); }
+.legend-dot.open { background-color: var(--open-color); }
+.legend-dot.other { background-color: var(--text-light); }
+
+/* FullCalendar Customization */
+.fc {
+  --fc-event-text-color: #0f172a;
+  --fc-event-bg-color: #e2e8f0;
+  --fc-event-border-color: #cbd5e1;
+  --fc-button-bg-color: #ffffff;
+  --fc-button-text-color: #0f172a;
+  --fc-button-border-color: #cbd5e1;
+  --fc-button-hover-bg-color: #f1f5f9;
+  --fc-button-hover-border-color: #94a3b8;
+  --fc-button-active-bg-color: #e0e7ff;
+  --fc-button-active-border-color: #3730a3;
+  --fc-today-bg-color: #f0fdf4;
+  --fc-border-color: #cbd5e1;
+  font-family: inherit;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.fc .fc-button {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a !important;
+  border-radius: var(--radius-md) !important;
+  padding: 0.4rem 0.85rem;
+  box-shadow: none !important;
+  text-transform: none;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, 
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #3730a3 !important;
+  color: #ffffff !important;
+  border-color: #3730a3 !important;
+}
+
+/* Events Styling */
+.fc-event {
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Force override FullCalendar default white event text */
+.fc-event,
+.fc-event-main,
+.fc-event-main-frame,
+.fc-event-title-container,
+.fc-event-title,
+.fc-event-time,
+.fc-timegrid-event .fc-event-main,
+.fc-timegrid-event .fc-event-time,
+.fc-timegrid-event .fc-event-title,
+.fc-daygrid-event .fc-event-main,
+.fc-daygrid-event .fc-event-time,
+.fc-daygrid-event .fc-event-title,
+.fc-list-event-title,
+.fc-list-event-time {
+  color: inherit !important;
+}
+
+/* 1. Lesson Slot (Blue theme: Contrast > 11:1 AAA) */
+.fc-event.event-lesson {
+  background-color: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+  border-left: 4px solid #1d4ed8 !important;
+}
+.fc-event.event-lesson .fc-event-title {
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+}
+.fc-event.event-lesson .fc-event-time {
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+/* 2. Shift Slot (Amber theme: Contrast > 9.2:1 AAA) */
+.fc-event.event-shift {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #78350f !important;
+  border-left: 4px solid #b45309 !important;
+}
+.fc-event.event-shift .fc-event-title {
+  color: #78350f !important;
+  font-weight: 700 !important;
+}
+.fc-event.event-shift .fc-event-time {
+  color: #92400e !important;
+  font-weight: 700 !important;
+}
+
+/* 3. Open Slot (Teal theme: Contrast > 9.8:1 AAA) */
+.fc-event.event-open {
+  background-color: #ccfbf1 !important;
+  border-color: #5eead4 !important;
+  color: #134e4a !important;
+  border-left: 4px dashed #0f766e !important;
+}
+.fc-event.event-open .fc-event-title {
+  color: #134e4a !important;
+  font-weight: 700 !important;
+}
+.fc-event.event-open .fc-event-time {
+  color: #0f766e !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Other Events (Slate theme: Contrast > 14:1 AAA) */
+.fc-event.event-other {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  border-left: 4px solid #475569 !important;
+}
+.fc-event.event-other .fc-event-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+.fc-event.event-other .fc-event-time {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+/* List view styling overrides */
+.fc-list-event-title a {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+.fc-list-event-time {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+.fc-list-day-cushion {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* -------------------------------------------------------------
+ * 2. Slots Manager & List View
+ * ----------------------------------------------------------- */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.metric-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.metric-icon-box.lesson { background: var(--lesson-bg); color: var(--lesson-color); }
+.metric-icon-box.shift { background: var(--shift-bg); color: var(--shift-color); }
+.metric-icon-box.open { background: var(--open-bg); color: var(--open-color); }
+.metric-icon-box.total { background: var(--primary-light); color: var(--primary); }
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.metric-sub {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* Filter Bar */
+.filter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filter-pill.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-input-wrapper input {
+  padding: 0.45rem 0.85rem 0.45rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  width: 200px;
+  outline: none;
+}
+.search-input-wrapper input:focus {
+  border-color: var(--primary);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Slots Table */
+.table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.slots-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.slots-table th {
+  background: #f8fafc;
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.slots-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.slots-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.775rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-lesson { background: var(--lesson-bg); color: var(--lesson-color); border: 1px solid var(--lesson-border); }
+.badge-shift { background: var(--shift-bg); color: var(--shift-color); border: 1px solid var(--shift-border); }
+.badge-open { background: var(--open-bg); color: var(--open-color); border: 1px solid var(--open-border); }
+.badge-other { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
+
+.badge-status-booked { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; font-weight: 700; }
+.badge-status-vacant { background: #dcfce7; color: #14532d; border: 1px solid #86efac; font-weight: 700; }
+
+/* -------------------------------------------------------------
+ * 3. AI Reservation Mail Parser UI
+ * ----------------------------------------------------------- */
+.ai-parser-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .ai-parser-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.parser-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title-group {
+  margin-bottom: 1.25rem;
+}
+
+.card-title-group h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-title-group p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.preset-samples {
+  margin-bottom: 1rem;
+}
+
+.preset-label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.preset-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preset-btn {
+  background: #f8fafc;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preset-btn:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.email-textarea {
+  min-height: 240px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.parser-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.ai-preview-card {
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.spinner-primary {
+  border-color: rgba(79, 70, 229, 0.2);
+  border-top-color: var(--primary);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* -------------------------------------------------------------
+ * 4. Multi-Email Batch Parser & Event Cards
+ * ----------------------------------------------------------- */
+.preset-btn-batch {
+  background: #eef2ff !important;
+  border-color: #6366f1 !important;
+  color: #4338ca !important;
+  font-weight: 700 !important;
+}
+
+.preset-btn-batch:hover {
+  background: #e0e7ff !important;
+  border-color: #4f46e5 !important;
+}
+
+.ai-preview-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ai-summary-pill {
+  font-size: 0.8125rem;
+  color: #0f172a;
+  font-weight: 700;
+  background: #f1f5f9;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid #cbd5e1;
+}
+
+.ai-batch-bar {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.batch-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  user-select: none;
+}
+
+.batch-select-all input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.ai-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 680px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.ai-event-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ai-event-card.card-lesson {
+  border-left: 5px solid #2563eb;
+}
+
+.ai-event-card.card-shift {
+  border-left: 5px solid #d97706;
+}
+
+.ai-event-card.card-cancellation {
+  border-left: 5px solid #dc2626;
+  background: #fffbfa;
+}
+
+.ai-event-card.card-processed {
+  border-left: 5px solid #059669;
+  background: #f0fdf4;
+}
+
+.ai-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.ai-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.ai-event-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.ai-card-title {
+  font-size: 1.075rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ai-card-datetime {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ai-card-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.4rem 1rem;
+  font-size: 0.8125rem;
+  color: #0f172a;
+  background: #f8fafc;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 0.65rem;
+}
+
+.ai-card-details-grid strong {
+  color: #475569;
+}
+
+.ai-card-notes {
+  font-size: 0.8rem;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.65rem;
+  line-height: 1.5;
+}
+
+/* Cancellation card block */
+.ai-card-cancel-box {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.cancel-reason-text {
+  font-size: 0.825rem;
+  color: #7f1d1d;
+  margin-bottom: 0.6rem;
+  font-weight: 700;
+}
+
+.matched-event-box {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.matched-event-box .matched-tag {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #991b1b;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.matched-event-box strong {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.matched-event-box .matched-time {
+  font-size: 0.8125rem;
+  color: #334155;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.matched-not-found {
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.cancel-actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Card Action Bar */
+.ai-card-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.registered-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.ai-card-edit-form {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.badge-status-pending {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.badge-status-success {
+  background: #dcfce7;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+
+.badge-status-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
