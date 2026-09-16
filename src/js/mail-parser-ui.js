@@ -402,7 +402,7 @@ function renderEventCard(item) {
         <!-- Inline Edit Form -->
         <div class="ai-card-edit-form" id="ai-edit-form-${id}" style="display: ${isEditing ? 'block' : 'none'};">
           <div class="form-group" style="margin-bottom: 0.5rem;">
-            <label style="font-size: 0.75rem; font-weight: 700;">予定タイトル（レッスン枠はカタカナ姓名、シフト枠はlilla）</label>
+            <label style="font-size: 0.75rem; font-weight: 700;">予定タイトル（レッスン枠: カタカナ姓名 / シフト枠: シフト名）</label>
             <input type="text" class="form-input edit-field-title" data-id="${id}" value="${escapeHtml(data.summary)}">
           </div>
           <div class="form-row" style="margin-bottom: 0.5rem;">
@@ -682,6 +682,15 @@ async function handleRegisterSingle(id, btnElement) {
   const token = getAccessToken();
   const isAuth = isAuthenticated();
 
+  if (!isAuth || !token) {
+    showToast('カレンダーに登録するにはGoogleアカウントへのログインが必要です', 'warning');
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.innerHTML = `📅 この予定を登録`;
+    }
+    return;
+  }
+
   const descriptionParts = [
     `【AI自動登録情報】`,
     data.customerName ? `予約者名: ${data.customerName}` : '',
@@ -700,25 +709,6 @@ async function handleRegisterSingle(id, btnElement) {
   };
 
   try {
-    if (config.demoMode || !isAuth) {
-      const mockCreated = {
-        id: `created-${Date.now()}-${id}`,
-        summary: data.summary,
-        start: { dateTime: data.startDateTime },
-        end: { dateTime: data.endDateTime },
-        location: data.location || '',
-        description: descriptionParts,
-        htmlLink: 'https://calendar.google.com'
-      };
-
-      if (onEventCreatedCallback) onEventCreatedCallback(mockCreated);
-      item.status = 'registered';
-      item.selected = false;
-      showToast(`【デモ】予定「${data.summary}」を登録しました！`, 'success');
-      renderPreviewContainer();
-      return;
-    }
-
     const calendarId = config.selectedCalendarId || 'primary';
     const createdEvent = await createCalendarEvent(calendarId, payload, token);
 
@@ -756,6 +746,16 @@ async function handleBatchRegister() {
   const config = getConfig();
   const token = getAccessToken();
   const isAuth = isAuthenticated();
+
+  if (!isAuth || !token) {
+    showToast('カレンダーに登録するにはGoogleアカウントへのログインが必要です', 'warning');
+    if (batchBtn) {
+      batchBtn.disabled = false;
+      batchBtn.innerHTML = `⚡ 選択した新規予定を一括登録`;
+    }
+    return;
+  }
+
   const calendarId = config.selectedCalendarId || 'primary';
 
   let successCount = 0;
@@ -787,28 +787,11 @@ async function handleBatchRegister() {
     };
 
     try {
-      if (config.demoMode || !isAuth) {
-        const mockCreated = {
-          id: `created-${Date.now()}-${item.id}`,
-          summary: data.summary,
-          start: { dateTime: data.startDateTime },
-          end: { dateTime: data.endDateTime },
-          location: data.location || '',
-          description: descriptionParts,
-          htmlLink: 'https://calendar.google.com'
-        };
-
-        if (onEventCreatedCallback) onEventCreatedCallback(mockCreated);
-        item.status = 'registered';
-        item.selected = false;
-        successCount++;
-      } else {
-        const createdEvent = await createCalendarEvent(calendarId, payload, token);
-        if (onEventCreatedCallback) onEventCreatedCallback(createdEvent);
-        item.status = 'registered';
-        item.selected = false;
-        successCount++;
-      }
+      const createdEvent = await createCalendarEvent(calendarId, payload, token);
+      if (onEventCreatedCallback) onEventCreatedCallback(createdEvent);
+      item.status = 'registered';
+      item.selected = false;
+      successCount++;
     } catch (err) {
       console.error(`Batch register failed for ${data.summary}:`, err);
       failCount++;
@@ -842,15 +825,12 @@ async function handleDeleteCancellation(id) {
   const token = getAccessToken();
   const isAuth = isAuthenticated();
 
-  try {
-    if (config.demoMode || !isAuth) {
-      if (onEventDeletedCallback) onEventDeletedCallback(item.matchedEvent.id);
-      item.status = 'deleted';
-      showToast(`【デモ】予定「${item.matchedEvent.summary}」を削除しました`, 'success');
-      renderPreviewContainer();
-      return;
-    }
+  if (!isAuth || !token) {
+    showToast('カレンダーの予定を削除するにはGoogleアカウントへのログインが必要です', 'warning');
+    return;
+  }
 
+  try {
     const calendarId = config.selectedCalendarId || 'primary';
     await deleteCalendarEvent(calendarId, item.matchedEvent.id, token);
 
@@ -888,21 +868,17 @@ async function handleToOpenCancellation(id) {
   const token = getAccessToken();
   const isAuth = isAuthenticated();
 
+  if (!isAuth || !token) {
+    showToast('カレンダーの予定を更新するにはGoogleアカウントへのログインが必要です', 'warning');
+    return;
+  }
+
   const patchPayload = {
     summary: openTitle,
     description: `【キャンセル再募集枠】\n元予約者: ${mEvent.summary}\n${mEvent.description || ''}`
   };
 
   try {
-    if (config.demoMode || !isAuth) {
-      const updatedMock = { ...mEvent, ...patchPayload };
-      if (onEventUpdatedCallback) onEventUpdatedCallback(updatedMock);
-      item.status = 'opened';
-      showToast(`【デモ】予定を「${openTitle}」に変更しました`, 'success');
-      renderPreviewContainer();
-      return;
-    }
-
     const calendarId = config.selectedCalendarId || 'primary';
     const updated = await updateCalendarEvent(calendarId, mEvent.id, patchPayload, token);
 
@@ -938,21 +914,17 @@ async function handleMarkCancellation(id) {
   const token = getAccessToken();
   const isAuth = isAuthenticated();
 
+  if (!isAuth || !token) {
+    showToast('カレンダーの予定を更新するにはGoogleアカウントへのログインが必要です', 'warning');
+    return;
+  }
+
   const patchPayload = {
     summary: cancelTitle,
     description: `【キャンセル済】\n理由: ${item.data?.cancelReason || '都合によるキャンセル'}\n${mEvent.description || ''}`
   };
 
   try {
-    if (config.demoMode || !isAuth) {
-      const updatedMock = { ...mEvent, ...patchPayload };
-      if (onEventUpdatedCallback) onEventUpdatedCallback(updatedMock);
-      item.status = 'cancelled';
-      showToast(`【デモ】予定を「${cancelTitle}」に変更しました`, 'success');
-      renderPreviewContainer();
-      return;
-    }
-
     const calendarId = config.selectedCalendarId || 'primary';
     const updated = await updateCalendarEvent(calendarId, mEvent.id, patchPayload, token);
 

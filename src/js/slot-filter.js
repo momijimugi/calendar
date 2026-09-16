@@ -33,7 +33,7 @@ export function classifyEvent(event) {
   if (isShift) {
     return {
       type: 'shift',
-      badgeLabel: 'シフト枠 (lilla)',
+      badgeLabel: 'シフト枠',
       badgeColor: 'amber',
       isOpenSlot: false,
       isLilla: isLillaOnly

@@ -3,7 +3,7 @@
  */
 import { getConfig, saveConfig, isGoogleConfigured, validateGoogleClientId } from './config.js';
 import { initGoogleAuth, requestLogin, logout, isAuthenticated, getAccessToken, getUserProfile } from './auth.js';
-import { fetchCalendarList, fetchEvents, getMockCalendars, getMockEvents } from './calendar-api.js';
+import { fetchCalendarList, fetchEvents } from './calendar-api.js';
 import { initCalendar, updateCalendarEvents, refreshCalendarSize } from './calendar-ui.js';
 import { initSlotsList, updateSlotsData } from './list-ui.js';
 import { initMailParser, showToast } from './mail-parser-ui.js';
@@ -68,13 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initGoogleAuth();
   updateAuthStatusUI();
 
-  // Load initial events (either from Google or Demo mode)
-  const config = getConfig();
-  if (config.demoMode || !isGoogleConfigured()) {
-    // If not configured, start with demo data so the app is instantly usable
-    loadDemoData();
-  } else if (isAuthenticated()) {
+  // Load initial events ONLY if authenticated; never display events or demo data when unauthenticated
+  if (isAuthenticated()) {
     loadCalendarData();
+  } else {
+    clearAllEvents();
   }
 
   // Listen for config changes (only update UI badges, avoid re-fetching loop)
@@ -89,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Googleアカウントにログインしました', 'success');
       loadCalendarData();
     } else {
+      clearAllEvents();
       if (e.detail.error) {
         showToast(`認証エラー: ${e.detail.error}`, 'error');
       }
@@ -154,7 +153,7 @@ function setupAuthControls() {
     logoutBtn.addEventListener('click', () => {
       logout();
       showToast('ログアウトしました', 'info');
-      loadDemoData();
+      clearAllEvents();
     });
   }
 
@@ -170,17 +169,11 @@ function setupAuthControls() {
 }
 
 function updateAuthStatusUI() {
-  const config = getConfig();
   const isAuth = isAuthenticated();
   const loginBtn = document.getElementById('btn-google-login');
   const userProfileEl = document.getElementById('user-profile-badge');
   const userEmailEl = document.getElementById('user-email-text');
   const userAvatarEl = document.getElementById('user-avatar-img');
-  const demoBadge = document.getElementById('demo-mode-badge');
-
-  if (demoBadge) {
-    demoBadge.style.display = config.demoMode ? 'inline-flex' : 'none';
-  }
 
   if (isAuth) {
     if (loginBtn) loginBtn.style.display = 'none';
@@ -211,16 +204,9 @@ async function loadCalendarData() {
   }
   isLoadingCalendar = true;
 
-  const config = getConfig();
-  if (config.demoMode) {
-    loadDemoData();
-    isLoadingCalendar = false;
-    return;
-  }
-
   const token = getAccessToken();
-  if (!token) {
-    loadDemoData();
+  if (!token || !isAuthenticated()) {
+    clearAllEvents();
     isLoadingCalendar = false;
     return;
   }
@@ -317,14 +303,12 @@ function showApiEnableNotice(enableUrl) {
 }
 
 /**
- * Load Demo Mock Data
+ * Clear All Events and Calendars (When unauthenticated)
  */
-function loadDemoData() {
-  const mockCals = getMockCalendars();
-  appState.calendars = mockCals;
-  populateCalendarDropdown(mockCals);
-
-  appState.events = getMockEvents();
+function clearAllEvents() {
+  appState.calendars = [];
+  appState.events = [];
+  populateCalendarDropdown([]);
   refreshDataViews();
 }
 
@@ -335,7 +319,15 @@ function refreshDataViews() {
 
 function populateCalendarDropdown(calendars) {
   const calSelect = document.getElementById('calendar-selector');
-  if (!calSelect || !calendars || calendars.length === 0) return;
+  if (!calSelect) return;
+
+  if (!calendars || calendars.length === 0) {
+    calSelect.innerHTML = '<option value="">(未ログイン)</option>';
+    calSelect.disabled = true;
+    return;
+  }
+
+  calSelect.disabled = false;
 
   // Retrieve saved preference from localStorage
   const savedCalId = localStorage.getItem('cal_app_selected_calendar_id') || 'primary';
@@ -415,7 +407,6 @@ function setupSettingsDialog() {
   const openBtn = document.getElementById('btn-open-settings');
   const closeBtn = document.getElementById('btn-close-settings');
   const saveBtn = document.getElementById('btn-save-settings');
-  const toggleDemoBtn = document.getElementById('btn-toggle-demo');
 
   if (openBtn && dialog) {
     openBtn.addEventListener('click', openSettingsDialog);
@@ -478,15 +469,6 @@ function setupSettingsDialog() {
       dialog.close();
     });
   }
-
-  if (toggleDemoBtn) {
-    toggleDemoBtn.addEventListener('click', () => {
-      const current = getConfig().demoMode;
-      saveConfig({ demoMode: !current });
-      showToast(!current ? 'デモモードをONにしました' : 'デモモードをOFFにしました', 'info');
-      dialog.close();
-    });
-  }
 }
 
 function openSettingsDialog() {
@@ -498,11 +480,6 @@ function openSettingsDialog() {
   setFormVal('setting-gemini-key', config.geminiApiKey);
   setFormVal('setting-lesson-keywords', config.lessonKeywords);
   setFormVal('setting-shift-keywords', config.shiftKeywords);
-
-  const demoBtn = document.getElementById('btn-toggle-demo');
-  if (demoBtn) {
-    demoBtn.textContent = config.demoMode ? 'デモモードを終了する' : 'デモモードを有効化';
-  }
 
   dialog.showModal();
 }

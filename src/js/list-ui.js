@@ -116,7 +116,18 @@ function renderTable() {
 
   if (filtered.length === 0) {
     tableBody.innerHTML = '';
-    if (emptyState) emptyState.style.display = 'block';
+    if (emptyState) {
+      emptyState.style.display = 'block';
+      const iconEl = emptyState.querySelector('.empty-state-icon');
+      const msgEl = emptyState.querySelector('p');
+      if (allEvents.length === 0) {
+        if (iconEl) iconEl.textContent = '🔒';
+        if (msgEl) msgEl.textContent = 'Googleアカウントにログインすると、レッスン枠・シフト枠が表示されます。';
+      } else {
+        if (iconEl) iconEl.textContent = '📋';
+        if (msgEl) msgEl.textContent = '該当するレッスン枠・シフト枠はありません';
+      }
+    }
     return;
   }
 

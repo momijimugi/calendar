@@ -23,9 +23,6 @@
         <h1 class="brand-title">AI Calendar Sync</h1>
         <div class="brand-subtitle">Googleカレンダー連携 &amp; レッスン・シフト枠マネージャー</div>
       </div>
-      <div id="demo-mode-badge" class="demo-mode-badge" style="display: none;">
-        ✨ デモモード稼働中
-      </div>
     </div>
 
     <div class="header-controls">
@@ -102,7 +99,7 @@
             </div>
             <div class="legend-item">
               <span class="legend-dot shift"></span>
-              <span>シフト枠 (lilla)</span>
+              <span>シフト枠</span>
             </div>
             <div class="legend-item">
               <span class="legend-dot other"></span>
@@ -358,19 +355,8 @@
         <div class="form-group">
           <label for="setting-shift-keywords">シフト枠 追加キーワード</label>
           <input type="text" id="setting-shift-keywords" class="form-input" placeholder="シフト,勤務,当番">
-          <div class="form-hint">※「lilla」のみの予定は自動でシフト枠と判定されます</div>
+          <div class="form-hint">※カンマ区切りで複数のキーワードを指定できます</div>
         </div>
-      </div>
-
-      <!-- Demo Mode -->
-      <div style="background: #f8fafc; border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <div style="font-weight: 600; font-size: 0.875rem;">デモモード（サンプルデータで試す）</div>
-          <div style="font-size: 0.775rem; color: var(--text-muted);">APIキー未設定でも、サンプル予定やモックAI解析の動作を体験できます。</div>
-        </div>
-        <button type="button" id="btn-toggle-demo" class="btn btn-secondary btn-sm">
-          デモ切替
-        </button>
       </div>
 
     </div>

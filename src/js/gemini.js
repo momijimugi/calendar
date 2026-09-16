@@ -14,12 +14,9 @@ export async function parseReservationMail(emailText) {
 
   const config = getConfig();
 
-  // If no Gemini API key, or Demo Mode active, fallback to smart local parser
-  if (!config.geminiApiKey || config.demoMode) {
-    if (!config.geminiApiKey && !config.demoMode) {
-      // Prompt notice, but still try fallback to show capability
-      console.warn('Gemini API key is not set. Using smart heuristic parser as fallback.');
-    }
+  // If no Gemini API key, fallback to smart local parser
+  if (!config.geminiApiKey) {
+    console.warn('Gemini API key is not set. Using smart heuristic parser as fallback.');
     return runMockOrHeuristicParser(emailText);
   }
 
@@ -392,7 +389,7 @@ function parseSingleEmailHeuristic(text, index = 0) {
     lessonType: course,
     location,
     description,
-    notes: isCancellation ? '予約キャンセル依頼' : '自動解析（デモ/フォールバックエンジン）',
+    notes: isCancellation ? '予約キャンセル依頼' : '自動解析（ルールベース抽出）',
     confidenceScore: 0.92
   };
 }
